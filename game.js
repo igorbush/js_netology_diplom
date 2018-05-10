@@ -95,8 +95,9 @@ class Level {
         }
         for (let col = Math.floor(actor.top); col < Math.ceil(actor.bottom); col++) {
             for (let row = Math.floor(actor.left); row < Math.ceil(actor.right); row++) {
-                if (this.grid[col][row] !== undefined) {
-                    return this.grid[col][row];
+                const obstacle = this.grid[col][row];
+                if (obstacle !== undefined) {
+                    return obstacle;
                 }
             }
         }
@@ -138,24 +139,22 @@ class LevelParser {
         return plan.map(str => str.split('').map(symb => this.obstacleFromSymbol(symb)));
     }
     createActors(plan) {
-        let finalArr = [];
+        const result = [];
         if (this.dictionary) {
-            for (let y = 0; y < plan.length; y++) {
-                for (let x = 0; x < plan[y].length; x++) {
-                    let symb = plan[y][x];
-                    let objClass = this.actorFromSymbol(symb);
-                    if (typeof objClass === 'function') {
-                        let vector = new Vector(x, y);
-                        let movObj = new objClass(vector);
-                        if (movObj instanceof Actor) {
-                            finalArr.push(movObj);
-                        }
-                    }
+          plan.forEach((row, y) => {
+            row.split('').forEach((cell, x) => {
+              if (typeof this.dictionary[cell] === 'function') {
+                const pos = new Vector(x, y);
+                const actor = new this.dictionary[cell](pos);
+                if (actor instanceof Actor) {
+                  result.push(actor);
                 }
-            }
+              }
+            })
+          })
         }
-        return finalArr;
-    }
+        return result;
+      }
     parse(plan) {
         return new Level(this.createGrid(plan), this.createActors(plan));
     }
